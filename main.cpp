@@ -24,6 +24,7 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Browser.H>
+#include <FL/Fl_Hold_Browser.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Output.H>
 #include <FL/Fl_Table.H>
@@ -31,6 +32,8 @@
 #include <FL/fl_draw.H>
 #include <FL/Fl_Widget.H>
 #include <stdlib.h>
+#include <iostream>
+#include <string>
 
 #define MAX_ROWS 30
 #define MAX_COLS 26		// A-Z
@@ -114,19 +117,38 @@ public:
 };
 
 void customerCallback(Fl_Widget* widget, void* v){
-  Fl_Browser* customer = (Fl_Browser*)v;
-  customer->insert(0,"CLicked add customer");
+  Fl_Hold_Browser* customer = (Fl_Hold_Browser*)v;
+  int cSize = customer->size();
+  for(int i = 0; i < cSize; i++){
+    if(customer->selected((i+1)) == 1){
+      customer->insert(0,"Adding");
+      std::cout << "User hit item " << i <<std::endl;
+    }
+  }
 }
+// void customerDownArrow(Fl_Widget* widget, void* v){
+//   Fl_Browser* customer = (Fl_Browser*)v;
+//   for(int i =0; i < customer->size(); i++){
+//     if(!customer->selected(0)){
+//       customer->select(0,1);
+//       i = customer->size()+1;
+//     }
+//     else if(customer->selected(i)){
+//       customer->select(i-1,0);
+//       customer->select(i,1);
+//     }
+//   }
+// }
 
 int main(int argc, char **argv) {
   Fl_Double_Window win(900, 400, "Simple Table");
   // Fl_Output customerTitle(0,40,100,100,0);
   // customerTitle.value("Customers");
-  Fl_Browser customer(0,80,100,100,0);
-  Fl_Browser avail(120,80,100,100,0);
-  Fl_Browser rent(240,80,100,100,0);
-  Fl_Browser detail(360,80,100,100,0);
-  Fl_Browser repair(480,80,100,100,0);
+  Fl_Hold_Browser customer(0,80,100,100,0);
+  Fl_Hold_Browser avail(120,80,100,100,0);
+  Fl_Hold_Browser rent(240,80,100,100,0);
+  Fl_Hold_Browser detail(360,80,100,100,0);
+  Fl_Hold_Browser repair(480,80,100,100,0);
   Fl_Button addCustomer(0,300,80,30,"Add customer");
   Fl_Button addVehicle(100,300,80,30,"Add vehicle");
   Fl_Button rentVehicle(200,300,80,30,"Rent vehicle");
@@ -138,7 +160,9 @@ int main(int argc, char **argv) {
   addCustomer.callback(customerCallback,&customer);
 
 
+
   avail.insert(0,"test");
+  avail.show(0);
   rent.insert(0,"test");
   detail.insert(0,"test");
   repair.insert(0,"test");
