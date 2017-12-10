@@ -1,26 +1,4 @@
-//
-// "$Id$"
-//
-//    Simple example of using Fl_Table - Greg Ercolano 11/29/2010
-//
-//    Demonstrates the simplest use of Fl_Table possible.
-//    Display a 10x10 array of integers with row/col headers.
-//    No interaction; simple display of data only.
-//    See other examples for more complex interactions with the table.
-//
-// Copyright 2010 Greg Ercolano.
-// Copyright 1998-2010 by Bill Spitzak and others.
-//
-// This library is free software. Distribution and use rights are outlined in
-// the file "COPYING" which should have been included with this file.  If this
-// file is missing or damaged, see the license at:
-//
-//     http://www.fltk.org/COPYING.php
-//
-// Please report all bugs and problems on the following page:
-//
-//     http://www.fltk.org/str.php
-//
+
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Browser.H>
@@ -34,145 +12,50 @@
 #include <stdlib.h>
 #include <iostream>
 #include <string>
+#include <stdio.h>
 
-#define MAX_ROWS 30
-#define MAX_COLS 26		// A-Z
+Fl_Double_Window win(1500, 1200, "Simple Table");
+// Fl_Output customerTitle(0,40,100,100,0);
+// customerTitle.value("Customers");
+Fl_Hold_Browser customer(40,80,200,200,"Customers");
+Fl_Hold_Browser avail(290,80,200,200,"Available Vehicles");
+Fl_Hold_Browser rent(540,80,200,200,"Rent");
+Fl_Hold_Browser detail(790,80,200,200,"Out for detail");
+Fl_Hold_Browser repair(1040,80,200,200,"Out for repair");
 
-// Derive a class from Fl_Table
-class MyTable : public Fl_Table {
+Fl_Button rentVehicle(40,300,200,30,"Rent vehicle");
+Fl_Button returnVehicle(290,300,200,30,"Return vehicle");
+Fl_Button returnVehicleProblem(550,300,200,30,"Return Vehicle (With problem)");
+Fl_Button repairVehicle(780,300,200,30,"Repair vehicle");
+Fl_Button detailVehicle(1040,300,200,30,"Detail vehicle");
 
-  int data[MAX_ROWS][MAX_COLS];		// data array for cells
+Fl_Input personName(100,400,300,30,"First Name");
+Fl_Input personLastName(100,450,300,30,"Last Name");
+Fl_Button addCustomer(100,500,300,30,"Add customer");
 
-  // Draw the row/col headings
-  //    Make this a dark thin upbox with the text inside.
-  //
-  void DrawHeader(const char *s, int X, int Y, int W, int H) {
-    fl_push_clip(X,Y,W,H);
-      fl_draw_box(FL_THIN_UP_BOX, X,Y,W,H, row_header_color());
-      fl_color(FL_BLACK);
-      fl_draw(s, X,Y,W,H, FL_ALIGN_CENTER);
-    fl_pop_clip();
-  }
-  // Draw the cell data
-  //    Dark gray text on white background with subtle border
-  //
-  void DrawData(const char *s, int X, int Y, int W, int H) {
-    fl_push_clip(X,Y,W,H);
-      // Draw cell bg
-      fl_color(FL_WHITE); fl_rectf(X,Y,W,H);
-      // Draw cell data
-      fl_color(FL_GRAY0); fl_draw(s, X,Y,W,H, FL_ALIGN_CENTER);
-      // Draw box border
-      fl_color(color()); fl_rect(X,Y,W,H);
-    fl_pop_clip();
-  }
-  // Handle drawing table's cells
-  //     Fl_Table calls this function to draw each visible cell in the table.
-  //     It's up to us to use FLTK's drawing functions to draw the cells the way we want.
-  //
-  void draw_cell(TableContext context, int ROW=0, int COL=0, int X=0, int Y=0, int W=0, int H=0) {
-    static char s[40];
-    switch ( context ) {
-      case CONTEXT_STARTPAGE:                   // before page is drawn..
-        fl_font(FL_HELVETICA, 16);              // set the font for our drawing operations
-        return;
-      case CONTEXT_COL_HEADER:                  // Draw column headers
-        sprintf(s,"%c",'A'+COL);                // "A", "B", "C", etc.
-        DrawHeader(s,X,Y,W,H);
-        return;
-      case CONTEXT_ROW_HEADER:                  // Draw row headers
-        sprintf(s,"%03d:",ROW);                 // "001:", "002:", etc
-        DrawHeader(s,X,Y,W,H);
-        return;
-      case CONTEXT_CELL:                        // Draw data in cells
-        sprintf(s,"%d",data[ROW][COL]);
-        DrawData(s,X,Y,W,H);
-        return;
-      default:
-        return;
-    }
-  }
-public:
-  // Constructor
-  //     Make our data array, and initialize the table options.
-  //
-  MyTable(int X, int Y, int W, int H, const char *L=0) : Fl_Table(X,Y,W,H,L) {
-    // Fill data array
-    for ( int r=0; r<MAX_ROWS; r++ )
-      for ( int c=0; c<MAX_COLS; c++ )
-        data[r][c] = 1000+(r*1000)+c;
-    // Rows
-    rows(MAX_ROWS);             // how many rows
-    row_header(1);              // enable row headers (along left)
-    row_height_all(20);         // default height of rows
-    row_resize(0);              // disable row resizing
-    // Cols
-    cols(MAX_COLS);             // how many columns
-    col_header(1);              // enable column headers (along top)
-    col_width_all(80);          // default width of columns
-    col_resize(1);              // enable column resizing
-    end();			// end the Fl_Table group
-  }
-  ~MyTable() { }
-};
+Fl_Input vehName(600,400,200,30,"Vehicle Name");
+Fl_Input vehMake(600,450,200,30,"Vehicle Make");
+Fl_Input vehModel(600,500,200,30,"Vehicle Model");
+Fl_Input vehYear(600,550,200,30,"Vehicle Year");
+Fl_Button addVehicle(600,600,200,30,"Add Vehicle");
 
 void customerCallback(Fl_Widget* widget, void* v){
+  //Set customerID to -1
   Fl_Hold_Browser* customer = (Fl_Hold_Browser*)v;
   int cSize = customer->size();
-  for(int i = 0; i < cSize; i++){
-    if(customer->selected((i+1)) == 1){
-      customer->insert(0,"Adding");
-      std::cout << "User hit item " << i <<std::endl;
-    }
-  }
+  std::string concat = (std::string) personName.value() + " " +(std::string) personLastName.value();
+  customer->insert(0,concat.c_str());
 }
-// void customerDownArrow(Fl_Widget* widget, void* v){
-//   Fl_Browser* customer = (Fl_Browser*)v;
-//   for(int i =0; i < customer->size(); i++){
-//     if(!customer->selected(0)){
-//       customer->select(0,1);
-//       i = customer->size()+1;
-//     }
-//     else if(customer->selected(i)){
-//       customer->select(i-1,0);
-//       customer->select(i,1);
-//     }
-//   }
-// }
 
 int main(int argc, char **argv) {
-  Fl_Double_Window win(900, 400, "Simple Table");
-  // Fl_Output customerTitle(0,40,100,100,0);
-  // customerTitle.value("Customers");
-  Fl_Hold_Browser customer(0,80,100,100,0);
-  Fl_Hold_Browser avail(120,80,100,100,0);
-  Fl_Hold_Browser rent(240,80,100,100,0);
-  Fl_Hold_Browser detail(360,80,100,100,0);
-  Fl_Hold_Browser repair(480,80,100,100,0);
-  Fl_Button addCustomer(0,300,80,30,"Add customer");
-  Fl_Button addVehicle(100,300,80,30,"Add vehicle");
-  Fl_Button rentVehicle(200,300,80,30,"Rent vehicle");
-  Fl_Button returnVehicle(300,300,100,30,"Return vehicle");
-  Fl_Button returnVehicleProblem(400,300,200,30,"Return Vehicle (With problem))");
-  Fl_Button repairVehicle(600,300,100,30,"Repair vehicle");
-  Fl_Button detailVehicle(700,300,100,30,"Detail vehicle");
-
   addCustomer.callback(customerCallback,&customer);
-
-
-
-  avail.insert(0,"test");
-  avail.show(0);
-  rent.insert(0,"test");
-  detail.insert(0,"test");
-  repair.insert(0,"test");
-  customer.insert(0,"test");
+  avail.insert(0,"avail");
+  rent.insert(0,"rent");
+  detail.insert(0,"detail");
+  repair.insert(0,"repair");
+  customer.insert(0,"customer");
   win.end();
 //  win.resizable(browser);
   win.show(argc,argv);
   return(Fl::run());
 }
-
-//
-// End of "$Id$".
-//
